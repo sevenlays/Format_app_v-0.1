@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/format-news/static/js/main.90ab0791.js",
+    "main.js": "/format-news/static/js/main.e74b7e29.js",
     "index.html": "/format-news/index.html",
-    "main.90ab0791.js.map": "/format-news/static/js/main.90ab0791.js.map"
+    "main.e74b7e29.js.map": "/format-news/static/js/main.e74b7e29.js.map"
   },
   "entrypoints": [
-    "static/js/main.90ab0791.js"
+    "static/js/main.e74b7e29.js"
   ]
 }
