@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Button,
   TextField,
@@ -21,7 +21,7 @@ function App() {
   const [categoryCounts, setCategoryCounts] = useState({});
   const [containsForbiddenWords, setContainsForbiddenWords] = useState(false);
 
-  const categories = [
+  const categories = useMemo(() => [
     'Главные',
     'Инциденты',
     'Культура',
@@ -29,7 +29,7 @@ function App() {
     'Мировые',
     'Экономика',
     'Спорт',
-  ];
+  ], []);
 
   useEffect(() => {
     const savedArticlesFromStorage = localStorage.getItem('savedArticles');
@@ -50,7 +50,7 @@ function App() {
       ).length;
     });
     setCategoryCounts(counts);
-  }, [savedArticles]);
+  }, [categories, savedArticles]);
 
   useEffect(() => {
     const forbiddenWordsRegex = /Укринформ|Читайте также:/;
@@ -103,10 +103,10 @@ function App() {
     setEditIndex(null);
   };
 
-  const forbiddenWordStyle = {
-    backgroundColor: '#FFCCCC',
-    fontWeight: 'bold',
-  };
+  // const forbiddenWordStyle = {
+  //   backgroundColor: '#FFCCCC',
+  //   fontWeight: 'bold',
+  // };
 
   const handleCopyCategory = (category) => {
     const articlesToCopy = savedArticles.filter(
