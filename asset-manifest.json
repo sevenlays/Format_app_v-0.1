@@ -1,8 +1,8 @@
 {
   "files": {
-    "main.js": "/format-news/static/js/main.e74b7e29.js",
-    "index.html": "/format-news/index.html",
-    "main.e74b7e29.js.map": "/format-news/static/js/main.e74b7e29.js.map"
+    "main.js": "/Format_app_v-0.1/static/js/main.e74b7e29.js",
+    "index.html": "/Format_app_v-0.1/index.html",
+    "main.e74b7e29.js.map": "/Format_app_v-0.1/static/js/main.e74b7e29.js.map"
   },
   "entrypoints": [
     "static/js/main.e74b7e29.js"
