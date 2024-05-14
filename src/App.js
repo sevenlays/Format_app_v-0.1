@@ -10,6 +10,7 @@ import {
   IconButton,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 function App() {
   const [title, setTitle] = useState('');
@@ -21,15 +22,18 @@ function App() {
   const [categoryCounts, setCategoryCounts] = useState({});
   const [containsForbiddenWords, setContainsForbiddenWords] = useState(false);
 
-  const categories = useMemo(() => [
-    'Главные',
-    'Инциденты',
-    'Культура',
-    'Интересное',
-    'Мировые',
-    'Экономика',
-    'Спорт',
-  ], []);
+  const categories = useMemo(
+    () => [
+      'Главные',
+      'Инциденты',
+      'Культура',
+      'Интересное',
+      'Мировые',
+      'Экономика',
+      'Спорт',
+    ],
+    []
+  );
 
   useEffect(() => {
     const savedArticlesFromStorage = localStorage.getItem('savedArticles');
@@ -65,7 +69,9 @@ function App() {
     }
 
     if (containsForbiddenWords) {
-      alert('Статья содержит запрещенные слова: "Укринформ" или "Читайте также:"');
+      alert(
+        'Статья содержит запрещенные слова: "Укринформ" или "Читайте также:"'
+      );
       return;
     }
 
@@ -128,6 +134,15 @@ function App() {
     setEditIndex(index);
   };
 
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const articles = [...savedArticles];
+    const [removed] = articles.splice(result.source.index, 1);
+    articles.splice(result.destination.index, 0, removed);
+    setSavedArticles(articles);
+  };
+
   return (
     <Box p={3}>
       <Typography variant='h4'>Format</Typography>
@@ -184,39 +199,58 @@ function App() {
         </Button>
       </Box>
       {selectedCategory && savedArticles.length > 0 && (
-        <Box mt={3}>
-          <Typography variant='h5'>
-            Статьи в выбранной категории "{selectedCategory}":
-          </Typography>
-          <List>
-            {savedArticles.map(
-              (article, index) =>
-                article.category === selectedCategory && (
-                  <ListItem key={index}>
-                    <ListItemText primary={article.title} />
-                    <IconButton
-                      aria-label='Edit'
-                      onClick={() => handleEditArticle(index)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </ListItem>
-                )
-            )}
-          </List>
-          <Button
-            variant='outlined'
-            color='primary'
-            onClick={() => handleCopyCategory(selectedCategory)}
-            disabled={
-              savedArticles.filter(
-                (article) => article.category === selectedCategory
-              ).length === 0
-            }
-          >
-            COPY CATEGORY
-          </Button>
-        </Box>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Box mt={3}>
+            <Typography variant='h5'>
+              Статьи в выбранной категории "{selectedCategory}":
+            </Typography>
+            <Droppable droppableId='articles'>
+              {(provided) => (
+                <List {...provided.droppableProps} ref={provided.innerRef}>
+                  {savedArticles.map(
+                    (article, index) =>
+                      article.category === selectedCategory && (
+                        <Draggable
+                          key={index}
+                          draggableId={String(index)}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <ListItem
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <ListItemText primary={article.title} />
+                              <IconButton
+                                aria-label='Edit'
+                                onClick={() => handleEditArticle(index)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </ListItem>
+                          )}
+                        </Draggable>
+                      )
+                  )}
+                  {provided.placeholder}
+                </List>
+              )}
+            </Droppable>
+            <Button
+              variant='outlined'
+              color='primary'
+              onClick={() => handleCopyCategory(selectedCategory)}
+              disabled={
+                savedArticles.filter(
+                  (article) => article.category === selectedCategory
+                ).length === 0
+              }
+            >
+              COPY CATEGORY
+            </Button>
+          </Box>
+        </DragDropContext>
       )}
       <Box mt={2}>
         <Button
