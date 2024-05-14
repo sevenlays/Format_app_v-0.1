@@ -10,6 +10,8 @@ import {
   IconButton,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 function App() {
   const [title, setTitle] = useState('');
@@ -21,15 +23,18 @@ function App() {
   const [categoryCounts, setCategoryCounts] = useState({});
   const [containsForbiddenWords, setContainsForbiddenWords] = useState(false);
 
-  const categories = useMemo(() => [
-    'Главные',
-    'Инциденты',
-    'Культура',
-    'Интересное',
-    'Мировые',
-    'Экономика',
-    'Спорт',
-  ], []);
+  const categories = useMemo(
+    () => [
+      'Главные',
+      'Инциденты',
+      'Культура',
+      'Интересное',
+      'Мировые',
+      'Экономика',
+      'Спорт',
+    ],
+    []
+  );
 
   useEffect(() => {
     const savedArticlesFromStorage = localStorage.getItem('savedArticles');
@@ -53,7 +58,7 @@ function App() {
   }, [categories, savedArticles]);
 
   useEffect(() => {
-    const forbiddenWordsRegex = /Укринформ|Читайте также:/;
+    const forbiddenWordsRegex = /укринформ|читайте также:/i;
     const isForbiddenWordExist = forbiddenWordsRegex.test(article);
     setContainsForbiddenWords(isForbiddenWordExist);
   }, [article]);
@@ -64,20 +69,17 @@ function App() {
       return;
     }
 
-    if (containsForbiddenWords) {
-      alert('Статья содержит запрещенные слова: "Укринформ" или "Читайте также:"');
-      return;
-    }
-
     const lines = article.split('\n');
-
     const formattedArticle = lines
-      .map((line, index) => (index === 0 ? line : line.replace(/^\s*/, '   ')))
+      .map((line, index) => {
+        if (containsForbiddenWords) {
+          return `<span style="color: red;">${line}</span>`;
+        }
+        return index === 0 ? line : line.replace(/^\s*/, '   ');
+      })
       .join('\n');
 
-    const formatted = ` -PAGE-\n${title}\n${city} (Unian) - ${formattedArticle}\n -END-`;
-
-    const filteredFormatted = formatted
+    const filteredFormatted = formattedArticle
       .split('\n')
       .filter((line) => line.trim() !== '')
       .join('\n');
@@ -85,7 +87,8 @@ function App() {
     const newArticle = {
       category: selectedCategory,
       title: title,
-      content: filteredFormatted + '\n\n',
+      city: city,
+      article: filteredFormatted,
     };
 
     if (editIndex !== null) {
@@ -96,25 +99,27 @@ function App() {
       setSavedArticles([...savedArticles, newArticle]);
     }
 
-    // navigator.clipboard.writeText(filteredFormatted);
     setTitle('');
     setCity('');
     setArticle('');
     setEditIndex(null);
   };
 
-  // const forbiddenWordStyle = {
-  //   backgroundColor: '#FFCCCC',
-  //   fontWeight: 'bold',
-  // };
-
   const handleCopyCategory = (category) => {
     const articlesToCopy = savedArticles.filter(
       (article) => article.category === category
     );
+
     const formattedCategory = articlesToCopy
-      .map((article) => article.content)
+      .map((article) => {
+        const formatted = article.article
+          .split('\n')
+          .map((line, index) => (index === 0 ? line : line.replace(/^\s*/, '   ')))
+          .join('\n');
+        return ` -PAGE-\n${article.title}\n${article.city} (Unian) - ${formatted}\n -END-\n`;
+      })
       .join('\n');
+
     navigator.clipboard.writeText(formattedCategory);
     alert(`Статьи из категории "${category}" скопированы в буфер обмена!`);
   };
@@ -122,10 +127,25 @@ function App() {
   const handleEditArticle = (index) => {
     const articleToEdit = savedArticles[index];
     setTitle(articleToEdit.title);
-    setCity('');
-    setArticle(articleToEdit.content);
+    setCity(articleToEdit.city);
+    setArticle(articleToEdit.article);
     setSelectedCategory(articleToEdit.category);
     setEditIndex(index);
+  };
+
+  const handleDeleteArticle = (index) => {
+    const updatedArticles = [...savedArticles];
+    updatedArticles.splice(index, 1);
+    setSavedArticles(updatedArticles);
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const articles = [...savedArticles];
+    const [removed] = articles.splice(result.source.index, 1);
+    articles.splice(result.destination.index, 0, removed);
+    setSavedArticles(articles);
   };
 
   return (
@@ -171,6 +191,11 @@ function App() {
           rows={10}
           value={article}
           onChange={(e) => setArticle(e.target.value)}
+          sx={{
+            '& span': {
+              color: 'red',
+            },
+          }}
         />
       </Box>
       <Box mt={2}>
@@ -184,39 +209,64 @@ function App() {
         </Button>
       </Box>
       {selectedCategory && savedArticles.length > 0 && (
-        <Box mt={3}>
-          <Typography variant='h5'>
-            Статьи в выбранной категории "{selectedCategory}":
-          </Typography>
-          <List>
-            {savedArticles.map(
-              (article, index) =>
-                article.category === selectedCategory && (
-                  <ListItem key={index}>
-                    <ListItemText primary={article.title} />
-                    <IconButton
-                      aria-label='Edit'
-                      onClick={() => handleEditArticle(index)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  </ListItem>
-                )
-            )}
-          </List>
-          <Button
-            variant='outlined'
-            color='primary'
-            onClick={() => handleCopyCategory(selectedCategory)}
-            disabled={
-              savedArticles.filter(
-                (article) => article.category === selectedCategory
-              ).length === 0
-            }
-          >
-            COPY CATEGORY
-          </Button>
-        </Box>
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Box mt={3}>
+            <Typography variant='h5'>
+              Статьи в выбранной категории "{selectedCategory}":
+            </Typography>
+            <Droppable droppableId='articles'>
+              {(provided) => (
+                <List {...provided.droppableProps} ref={provided.innerRef}>
+                  {savedArticles.map(
+                    (article, index) =>
+                      article.category === selectedCategory && (
+                        <Draggable
+                          key={index}
+                          draggableId={String(index)}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <ListItem
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <ListItemText primary={article.title} />
+                              <IconButton
+                                aria-label='Edit'
+                                onClick={() => handleEditArticle(index)}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                aria-label='Delete'
+                                onClick={() => handleDeleteArticle(index)}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </ListItem>
+                          )}
+                        </Draggable>
+                      )
+                  )}
+                  {provided.placeholder}
+                </List>
+              )}
+            </Droppable>
+            <Button
+              variant='outlined'
+              color='primary'
+              onClick={() => handleCopyCategory(selectedCategory)}
+              disabled={
+                savedArticles.filter(
+                  (article) => article.category === selectedCategory
+                ).length === 0
+              }
+            >
+              COPY CATEGORY
+            </Button>
+          </Box>
+        </DragDropContext>
       )}
       <Box mt={2}>
         <Button
