@@ -8,6 +8,8 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -22,6 +24,8 @@ function App() {
   const [editIndex, setEditIndex] = useState(null);
   const [categoryCounts, setCategoryCounts] = useState({});
   const [containsForbiddenWords, setContainsForbiddenWords] = useState(false);
+  const [source, setSource] = useState('Unian');
+  const [formValid, setFormValid] = useState(false);
 
   const categories = useMemo(
     () => [
@@ -63,9 +67,18 @@ function App() {
     setContainsForbiddenWords(isForbiddenWordExist);
   }, [article]);
 
+  useEffect(() => {
+    setFormValid(!!(title && article && city && selectedCategory && !containsForbiddenWords));
+  }, [title, article, city, selectedCategory, containsForbiddenWords]);
+
   const handleFormatAndSave = () => {
     if (!selectedCategory) {
       alert('Выберите категорию для сохранения статьи!');
+      return;
+    }
+
+    if (!title || !article || !city) {
+      alert('Заголовок, статья и город должны быть заполнены!');
       return;
     }
 
@@ -89,6 +102,7 @@ function App() {
       title: title,
       city: city,
       article: filteredFormatted,
+      source: source,
     };
 
     if (editIndex !== null) {
@@ -114,9 +128,11 @@ function App() {
       .map((article) => {
         const formatted = article.article
           .split('\n')
-          .map((line, index) => (index === 0 ? line : line.replace(/^\s*/, '   ')))
+          .map((line, index) =>
+            index === 0 ? line : line.replace(/^\s*/, '   ')
+          )
           .join('\n');
-        return ` -PAGE-\n${article.title}\n${article.city} (Unian) - ${formatted}\n -END-\n`;
+        return ` -PAGE-\n${article.title}\n${article.city} (${article.source}) - ${formatted}\n -END-\n`;
       })
       .join('\n');
 
@@ -130,6 +146,7 @@ function App() {
     setCity(articleToEdit.city);
     setArticle(articleToEdit.article);
     setSelectedCategory(articleToEdit.category);
+    setSource(articleToEdit.source);
     setEditIndex(index);
   };
 
@@ -167,7 +184,13 @@ function App() {
           ))}
         </Box>
       </Box>
-      <Box mt={2}>
+      <Box
+        mt={2}
+        display='flex'
+        flexDirection='row'
+        alignItems='center'
+        justifyContent='space-between'
+      >
         <TextField
           label='Заголовок'
           fullWidth
@@ -175,7 +198,26 @@ function App() {
           onChange={(e) => setTitle(e.target.value)}
         />
       </Box>
-      <Box mt={2}>
+      <Box
+        mt={2}
+        display='flex'
+        flexDirection='row'
+        alignItems='center'
+        justifyContent='space-between'
+      >
+        <Box width={100}>
+          <Select
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            fullWidth
+            displayEmpty
+            inputProps={{ 'aria-label': 'Выберите источник новости' }}
+          >
+            <MenuItem value='Unian'>Unian</MenuItem>
+            <MenuItem value='BNS'>BNS</MenuItem>
+            <MenuItem value='Apsny'>Apsny</MenuItem>
+          </Select>
+        </Box>
         <TextField
           label='Город (источник новости)'
           fullWidth
@@ -203,7 +245,7 @@ function App() {
           variant='contained'
           color='primary'
           onClick={handleFormatAndSave}
-          disabled={!selectedCategory || containsForbiddenWords}
+          disabled={!formValid}
         >
           {editIndex !== null ? 'SAVE' : 'FORMAT & SAVE'}
         </Button>
