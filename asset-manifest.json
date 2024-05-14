@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/Format_app_v-0.1/static/js/main.e74b7e29.js",
+    "main.js": "/Format_app_v-0.1/static/js/main.1797e49b.js",
     "index.html": "/Format_app_v-0.1/index.html",
-    "main.e74b7e29.js.map": "/Format_app_v-0.1/static/js/main.e74b7e29.js.map"
+    "main.1797e49b.js.map": "/Format_app_v-0.1/static/js/main.1797e49b.js.map"
   },
   "entrypoints": [
-    "static/js/main.e74b7e29.js"
+    "static/js/main.1797e49b.js"
   ]
 }
