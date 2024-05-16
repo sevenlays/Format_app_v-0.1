@@ -10,9 +10,16 @@ import {
   IconButton,
   Select,
   MenuItem,
+  Snackbar,
+  Slide,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 function App() {
@@ -26,6 +33,12 @@ function App() {
   const [containsForbiddenWords, setContainsForbiddenWords] = useState(false);
   const [source, setSource] = useState('Unian');
   const [formValid, setFormValid] = useState(false);
+  const [titleError, setTitleError] = useState(false);
+  const [cityError, setCityError] = useState(false);
+  const [articleError, setArticleError] = useState(false);
+  const [isClearAllDialogOpen, setIsClearAllDialogOpen] = useState(false);
+  const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const categories = useMemo(
     () => [
@@ -68,7 +81,15 @@ function App() {
   }, [article]);
 
   useEffect(() => {
-    setFormValid(!!(title && article && city && selectedCategory && !containsForbiddenWords));
+    setFormValid(
+      !!(
+        title &&
+        article &&
+        city &&
+        selectedCategory &&
+        !containsForbiddenWords
+      )
+    );
   }, [title, article, city, selectedCategory, containsForbiddenWords]);
 
   const handleFormatAndSave = () => {
@@ -137,7 +158,8 @@ function App() {
       .join('\n');
 
     navigator.clipboard.writeText(formattedCategory);
-    alert(`Статьи из категории "${category}" скопированы в буфер обмена!`);
+    setSnackbarMessage(`Статьи из категории "${category}" скопированы в буфер обмена!`);
+    setIsSnackbarOpen(true);
   };
 
   const handleEditArticle = (index) => {
@@ -165,6 +187,24 @@ function App() {
     setSavedArticles(articles);
   };
 
+  const handleClearAllCategories = () => {
+    setIsClearAllDialogOpen(true);
+  };
+
+  const handleClearAllCategoriesConfirmed = () => {
+    setSavedArticles([]);
+    setIsClearAllDialogOpen(false);
+  };
+
+  const handleClearAllCategoriesCancelled = () => {
+    setIsClearAllDialogOpen(false);
+  };
+
+  const handleCloseSnackbar = (errorStateSetter) => () => {
+    errorStateSetter(false);
+  };
+
+  
   return (
     <Box p={3}>
       <Typography variant='h4'>Format</Typography>
@@ -185,7 +225,7 @@ function App() {
         </Box>
       </Box>
       <Box
-        mt={2}
+        mt={1}
         display='flex'
         flexDirection='row'
         alignItems='center'
@@ -196,10 +236,12 @@ function App() {
           fullWidth
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          error={!title}
+          onFocus={handleCloseSnackbar(setTitleError)}
         />
       </Box>
       <Box
-        mt={2}
+        mt={1}
         display='flex'
         flexDirection='row'
         alignItems='center'
@@ -223,9 +265,11 @@ function App() {
           fullWidth
           value={city}
           onChange={(e) => setCity(e.target.value.toUpperCase())}
+          error={!city}
+          onFocus={handleCloseSnackbar(setCityError)}
         />
       </Box>
-      <Box mt={2}>
+      <Box mt={1}>
         <TextField
           label='Статья'
           fullWidth
@@ -233,6 +277,9 @@ function App() {
           rows={10}
           value={article}
           onChange={(e) => setArticle(e.target.value)}
+          error={!article}
+          helperText={!article}
+          onFocus={handleCloseSnackbar(setArticleError)}
           sx={{
             '& span': {
               color: 'red',
@@ -250,6 +297,14 @@ function App() {
           {editIndex !== null ? 'SAVE' : 'FORMAT & SAVE'}
         </Button>
       </Box>
+      <Snackbar
+        open={isSnackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setIsSnackbarOpen(false)}
+        TransitionComponent={Slide}
+        TransitionProps={{ direction: 'down' }}
+        message={snackbarMessage}
+      />
       {selectedCategory && savedArticles.length > 0 && (
         <DragDropContext onDragEnd={handleDragEnd}>
           <Box mt={3}>
@@ -314,10 +369,24 @@ function App() {
         <Button
           variant='contained'
           color='secondary'
-          onClick={() => setSavedArticles([])}
+          onClick={handleClearAllCategories}
         >
           Clear All Categories
         </Button>
+        <Dialog
+          open={isClearAllDialogOpen}
+          onClose={handleClearAllCategoriesCancelled}
+        >
+          <DialogTitle>Вы уверены что хотите очистить все категории?</DialogTitle>
+          <DialogActions>
+            <Button onClick={handleClearAllCategoriesCancelled} color="primary">
+              Отмена
+            </Button>
+            <Button onClick={handleClearAllCategoriesConfirmed} color="primary">
+              Подтвердить
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
