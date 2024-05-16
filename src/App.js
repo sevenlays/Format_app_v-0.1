@@ -22,6 +22,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
+import { fetchExchangeRates } from './fetchExchangeRates';
+
 function App() {
   const [title, setTitle] = useState('');
   const [city, setCity] = useState('');
@@ -158,7 +160,9 @@ function App() {
       .join('\n');
 
     navigator.clipboard.writeText(formattedCategory);
-    setSnackbarMessage(`Статьи из категории "${category}" скопированы в буфер обмена!`);
+    setSnackbarMessage(
+      `Статьи из категории "${category}" скопированы в буфер обмена!`
+    );
     setIsSnackbarOpen(true);
   };
 
@@ -204,7 +208,12 @@ function App() {
     errorStateSetter(false);
   };
 
-  
+  const handleCopyExchangeRates = async () => {
+    await fetchExchangeRates(source);
+    setSnackbarMessage('Курсы валют скопированы в буфер обмена!');
+    setIsSnackbarOpen(true);
+  };
+
   return (
     <Box p={3}>
       <Typography variant='h4'>Format</Typography>
@@ -222,6 +231,16 @@ function App() {
               {category} ({categoryCounts[category]})
             </Button>
           ))}
+          {source === 'Unian' && (
+            <Button
+              style={{ height: '36px' }}
+              variant='contained'
+              color='primary'
+              onClick={handleCopyExchangeRates}
+            >
+              {`Курс Валют Украины`}
+            </Button>
+          )}
         </Box>
       </Box>
       <Box
@@ -377,12 +396,14 @@ function App() {
           open={isClearAllDialogOpen}
           onClose={handleClearAllCategoriesCancelled}
         >
-          <DialogTitle>Вы уверены что хотите очистить все категории?</DialogTitle>
+          <DialogTitle>
+            Вы уверены что хотите очистить все категории?
+          </DialogTitle>
           <DialogActions>
-            <Button onClick={handleClearAllCategoriesCancelled} color="primary">
+            <Button onClick={handleClearAllCategoriesCancelled} color='primary'>
               Отмена
             </Button>
-            <Button onClick={handleClearAllCategoriesConfirmed} color="primary">
+            <Button onClick={handleClearAllCategoriesConfirmed} color='primary'>
               Подтвердить
             </Button>
           </DialogActions>
