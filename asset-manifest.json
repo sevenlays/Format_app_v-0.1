@@ -1,12 +1,12 @@
 {
   "files": {
     "main.css": "/Format_app_v-0.1/static/css/main.31d6cfe0.css",
-    "main.js": "/Format_app_v-0.1/static/js/main.dab51a1f.js",
+    "main.js": "/Format_app_v-0.1/static/js/main.4aa744d4.js",
     "index.html": "/Format_app_v-0.1/index.html",
-    "main.dab51a1f.js.map": "/Format_app_v-0.1/static/js/main.dab51a1f.js.map"
+    "main.4aa744d4.js.map": "/Format_app_v-0.1/static/js/main.4aa744d4.js.map"
   },
   "entrypoints": [
     "static/css/main.31d6cfe0.css",
-    "static/js/main.dab51a1f.js"
+    "static/js/main.4aa744d4.js"
   ]
 }
