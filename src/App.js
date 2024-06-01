@@ -14,7 +14,6 @@ import {
   Slide,
   Dialog,
   DialogTitle,
-  DialogContent,
   DialogActions,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -216,9 +215,9 @@ function App() {
 
   return (
     <Box p={3}>
-      <Typography variant='h4'>Format</Typography>
+      {/* <Typography variant='h4'>Format</Typography> */}
       <Box mt={3}>
-        <Typography variant='h5'>Категории:</Typography>
+        {/* <Typography variant='h5'>Категории:</Typography> */}
         <Box display='flex' flexWrap='wrap' mt={1}>
           {categories.map((category, index) => (
             <Button
